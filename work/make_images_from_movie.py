@@ -4,9 +4,10 @@ import cv2
 
 
 def main():
-    movie_dir = os.path.join('data', 'movies')
-    target_movie_name = '15674226503903.MP4'
-    output_dir = os.path.join('data', 'images')
+    base_dir = os.getcwd()
+    movie_dir = os.path.join(base_dir, 'data', 'movies')
+    target_movie_name = '15674226503903.MP4'  # 対象の動画ファイル名を指定
+    output_dir = os.path.join(base_dir, 'data', 'images')
     cap = cv2.VideoCapture(os.path.join(movie_dir, target_movie_name))
 
     i = 0

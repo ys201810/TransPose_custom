@@ -7,10 +7,14 @@ import math
 import torchvision
 import glob
 import pickle
+import os
+
 
 from PIL import Image
 import requests
 import urllib.request as request
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 
 COCO_KEYPOINT_INDEXES = {
@@ -372,10 +376,6 @@ if __name__ == '__main__':
     print("tpr params:{:.3f}M".format(sum([p.numel() for p in tpr.parameters()]) / 1000 ** 2))
     print("tph params:{:.3f}M".format(sum([p.numel() for p in tph.parameters()]) / 1000 ** 2))
 
-    #url = "http://images.cocodataset.org/val2017/000000000885.jpg"
-    #response = request.urlopen(url)
-    #img_array = np.array(bytearray(response.read()))  # , dtype=np.uint8)
-    #img = cv2.imdecode(img_array, -1)
     targets = glob.glob('data/images/*.jpg')
     results = {}
 
