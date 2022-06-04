@@ -78,3 +78,6 @@ lib/dataset/coco.pyの[self.db](https://github.com/ys201810/TransPose_custom/blo
 ```
 python tools/train.py --cfg experiments/coco/transpose_r/TP_R_256x192_d256_h1024_enc4_mh8.yaml
 ```
+
+#### 学習データ収集方法
+[これ](https://dev.classmethod.jp/articles/making-datasets-for-pose-estimation-by-using-coco-annotator/https://dev.classmethod.jp/articles/making-datasets-for-pose-estimation-by-using-coco-annotator/)を参考にアノテーションを集める。
