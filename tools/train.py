@@ -187,9 +187,11 @@ def main():
         writer_dict['train_global_steps'] = checkpoint['train_global_steps']
         writer_dict['valid_global_steps'] = checkpoint['valid_global_steps']
 
-        model.load_state_dict(checkpoint['state_dict'])
+        # model.load_state_dict(checkpoint['state_dict'])
 
-        optimizer.load_state_dict(checkpoint['optimizer'])
+        # optimizer.load_state_dict(checkpoint['optimizer'])
+        optimizer.param_groups[0]['initial_lr'] = 0.001
+
         logger.info("=> loaded checkpoint '{}' (epoch {})".format(
             checkpoint_file, checkpoint['epoch']))
 
@@ -247,5 +249,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print('mainaaa!')
+    print('mainaaaaa!')
     main()
