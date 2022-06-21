@@ -14,8 +14,8 @@ from PIL import Image
 import requests
 import urllib.request as request
 
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+mode = 'own'  # ownで20点
 
 COCO_KEYPOINT_INDEXES = {
     0: 'nose',
@@ -37,6 +37,15 @@ COCO_KEYPOINT_INDEXES = {
     16: 'right_ankle'
 }
 
+if mode == 'own':
+    COCO_KEYPOINT_INDEXES.update(
+        {
+            17: 'right_toe',  # 追加
+            18: 'left_toe',  # 追加
+            19: 'bat_top'  # 追加
+        }
+    )
+
 COCO_INSTANCE_CATEGORY_NAMES = [
     '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
     'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
@@ -56,12 +65,18 @@ SKELETON = [
     [1, 3], [1, 0], [2, 4], [2, 0], [0, 5], [0, 6], [5, 7], [7, 9], [6, 8], [8, 10], [5, 11], [6, 12], [11, 12],
     [11, 13], [13, 15], [12, 14], [14, 16]
 ]
+if mode == 'own':
+    SKELETON.extend([[16, 18], [15, 17], [0, 19]])
 
 CocoColors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0], [85, 255, 0], [0, 255, 0],
               [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255],
               [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85]]
-
-NUM_KPTS = 17
+if mode == 'own':
+    CocoColors.extend([[0, 0, 0], [0, 0, 0], [128, 128, 128]])
+if mode == 'own':
+    NUM_KPTS = 20
+else:
+    NUM_KPTS = 17
 
 
 def get_max_preds(batch_heatmaps):
@@ -379,7 +394,18 @@ if __name__ == '__main__':
     targets = glob.glob('data/images/*.jpg')
     results = {}
 
-    model = torch.hub.load('yangsenius/TransPose:main', 'tph_a4_256x192', pretrained=True)
+    if mode == 'own':
+        with open('../tools/trained_cfg.pkl', 'rb') as inf:
+            cfg = pickle.load(inf)
+        import models
+
+        model = eval('models.' + cfg.MODEL.NAME + '.get_pose_net')(cfg, is_train=True)
+
+        model_path = '/home/ys.201810/sports/TransPose/tools/output/coco/transpose_r/TP_R_256x192_d256_h1024_enc4_mh8/final_state.pth'
+        model.load_state_dict(torch.load(model_path))
+    else:
+        model = torch.hub.load('yangsenius/TransPose:main', 'tph_a4_256x192', pretrained=True)
+
     CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     box_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
@@ -392,6 +418,8 @@ if __name__ == '__main__':
         img = cv2.imread(target)
 
         save_path = target.replace('images', 'results')
+        if mode == 'own':
+            save_path = save_path.replace('.jpg', '_own.jpg')
         pose_preds, box_pred = main(img, save_path, box_model, model)
 
         pred_results = {}
