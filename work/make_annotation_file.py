@@ -108,18 +108,34 @@ def main():
         annotations = pickle.load(inf)
 
     # coco annotation toolの結果のロード
-    annotation_result_file = os.path.join('data', 'coco_annotation_tool_results.json')
-    with open(annotation_result_file, 'r') as inf:
-        annotation_results = json.load(inf)
+    annotation_result_file_1 = os.path.join('data', 'coco_annotation_tool_results_394.json')
+    with open(annotation_result_file_1, 'r') as inf:
+        annotation_results_1 = json.load(inf)
 
     # key: 画像名, valueに右のつま先, 左のつま先, バッドの先端のリストの辞書を作成
-    id_file_dict = {}
-    for val in annotation_results['images']:
-        id_file_dict[val['id']] = os.path.basename(val['path'])
-    add_keypoint_dict = {}
-    for val in annotation_results['annotations']:
-        file_name = id_file_dict[val['image_id']]
-        add_keypoint_dict[file_name] = val['keypoints']
+    id_file_dict_1 = {}
+    for val in annotation_results_1['images']:
+        id_file_dict_1[val['id']] = os.path.basename(val['path'])
+    add_keypoint_dict_1 = {}
+    for val in annotation_results_1['annotations']:
+        file_name = id_file_dict_1[val['image_id']]
+        add_keypoint_dict_1[file_name] = val['keypoints']
+
+    annotation_result_file_2 = os.path.join('data', 'coco_annotation_tool_results_440.json')
+    with open(annotation_result_file_2, 'r') as inf:
+        annotation_results_2 = json.load(inf)
+
+    id_file_dict_2 = {}
+    for i, val in enumerate(annotation_results_2['images']):
+        id_file_dict_2[val['id']] = os.path.basename(val['path'])
+    add_keypoint_dict_2 = {}
+    for val in annotation_results_2['annotations']:
+        file_name = id_file_dict_2[val['image_id']]
+        add_keypoint_dict_2[file_name] = val['keypoints']
+
+    # 1と2のマージ
+
+    add_keypoint_dict = dict({**add_keypoint_dict_1, **add_keypoint_dict_2})
 
     train_image_infos = []
     valid_image_infos = []
@@ -172,5 +188,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print(212123)
     main()
