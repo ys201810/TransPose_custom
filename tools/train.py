@@ -36,9 +36,25 @@ from utils.utils import get_optimizer
 from utils.utils import save_checkpoint
 from utils.utils import create_logger
 from utils.utils import get_model_summary
-
+from collections import OrderedDict
 import dataset
 import models
+
+
+def fix_model_state_dict(state_dict, kind):
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k
+        if kind == 'del':
+            if name.startswith('modules.'):
+                name = name[7:]  # remove 'module.' of dataparallel
+            new_state_dict[name] = v
+        elif kind =='add':
+            name = 'module.' + name
+            new_state_dict[name] = v
+
+    return new_state_dict
+
 
 
 def parse_args():
@@ -177,6 +193,18 @@ def main():
         final_output_dir, 'checkpoint.pth'
     )
 
+    # プレトレインモデルをロードし、最終層以外を適応する。
+    pretrained_model = torch.hub.load('yangsenius/TransPose:main', 'tpr_a4_256x192', pretrained=True)  # tph_a4_256x192
+    model_state_dict = model.state_dict()
+    pretrained_state_dict = pretrained_model.state_dict()
+
+    # shape不一致の
+    del pretrained_state_dict['final_layer.weight'], pretrained_state_dict['final_layer.bias']
+    fixed_pretrained_state_dict = fix_model_state_dict(pretrained_state_dict, 'add')
+    model_state_dict.update(fixed_pretrained_state_dict)
+    model.load_state_dict(model_state_dict)
+
+    """
     if cfg.AUTO_RESUME and os.path.exists(checkpoint_file):
         logger.info("=> loading checkpoint '{}'".format(checkpoint_file))
         checkpoint = torch.load(checkpoint_file)
@@ -187,13 +215,14 @@ def main():
         writer_dict['train_global_steps'] = checkpoint['train_global_steps']
         writer_dict['valid_global_steps'] = checkpoint['valid_global_steps']
 
-        # model.load_state_dict(checkpoint['state_dict'])
+        model.load_state_dict(checkpoint['state_dict'])
 
         # optimizer.load_state_dict(checkpoint['optimizer'])
         optimizer.param_groups[0]['initial_lr'] = 0.001
 
         logger.info("=> loaded checkpoint '{}' (epoch {})".format(
             checkpoint_file, checkpoint['epoch']))
+    """
 
     # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
     #     optimizer, cfg.TRAIN.LR_STEP, cfg.TRAIN.LR_FACTOR,
